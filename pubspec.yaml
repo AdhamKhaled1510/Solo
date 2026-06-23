@@ -17,8 +17,6 @@ dependencies:
   google_fonts: ^6.2.1
   fl_chart: ^0.70.2
   flutter_local_notifications: ^18.0.1
-  geolocator: ^13.0.3
-  geocoding: ^3.0.0
   adhan_dart: ^2.0.1
   path_provider: ^2.1.5
   uuid: ^4.5.1
