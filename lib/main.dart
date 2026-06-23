@@ -22,6 +22,9 @@ import 'screens/achievements/achievements_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/rooms/rooms_screen.dart';
 import 'screens/soundscapes/soundscapes_screen.dart';
+import 'screens/timer/timer_screen.dart';
+import 'screens/tasks/tasks_screen.dart';
+import 'screens/habits/habits_screen.dart';
 import 'services/storage_service.dart';
 
 void main() async {
@@ -76,6 +79,9 @@ class MyStudyApp extends StatelessWidget {
               '/settings': (context) => const SettingsScreen(),
             '/rooms': (context) => const RoomsScreen(),
             '/soundscapes': (context) => const SoundscapesScreen(),
+            '/timer': (context) => const TimerScreen(),
+            '/tasks': (context) => const TasksScreen(),
+            '/habits': (context) => const HabitsScreen(),
             },
             builder: (context, child) {
               return Directionality(

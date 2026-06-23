@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
                   child: Column(
                     children: [
-                      _Header(user: user),
+                      _Header(user: user, outerContext: context),
                       const SizedBox(height: 16),
                       _TimerSection(onEnterDungeon: () => Navigator.pushNamed(context, '/timer')),
                       const SizedBox(height: 16),
@@ -53,7 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _Header extends StatelessWidget {
   final dynamic user;
-  const _Header({required this.user});
+  final BuildContext outerContext;
+  const _Header({required this.user, required this.outerContext});
 
   @override
   Widget build(BuildContext context) {
@@ -94,16 +95,101 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Right: Gold + Streak
+          // Right: Gold + Streak + Menu
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               GlassmorphicCapsule(icon: Icons.monetization_on, text: '${user.coins}', color: CyberColors.amberGold),
               const SizedBox(height: 6),
               GlassmorphicCapsule(icon: Icons.local_fire_department, text: '${user.streakDays} DAY', color: CyberColors.hotMagenta),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: () => _showQuickMenu(outerContext),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: CyberColors.dimCyan.withAlpha(60)),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Icon(Icons.grid_view_rounded, color: CyberColors.textDim, size: 14),
+                ),
+              ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showQuickMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CyberColors.surface,
+      shape: const BeveledRectangleBorder(
+        side: BorderSide(color: CyberColors.dimCyan, width: 1),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('NAVIGATION / القائمة', style: TextStyle(color: CyberColors.neonCyan, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+            const Divider(color: CyberColors.darkTeal),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              children: [
+                _QuickNavItem(icon: Icons.mosque, label: 'PRAYERS', route: '/habits', context: context),
+                _QuickNavItem(icon: Icons.checklist, label: 'TASKS', route: '/tasks', context: context),
+                _QuickNavItem(icon: Icons.park, label: 'GARDEN', route: '/garden', context: context),
+                _QuickNavItem(icon: Icons.person, label: 'AVATAR', route: '/avatar', context: context),
+                _QuickNavItem(icon: Icons.emoji_events, label: 'ACHIEVEMENTS', route: '/achievements', context: context),
+                _QuickNavItem(icon: Icons.bar_chart, label: 'STATS', route: '/stats', context: context),
+                _QuickNavItem(icon: Icons.groups, label: 'ROOMS', route: '/rooms', context: context),
+                _QuickNavItem(icon: Icons.music_note, label: 'SOUNDSCAPES', route: '/soundscapes', context: context),
+                _QuickNavItem(icon: Icons.bug_report, label: 'BOSS', route: '/boss', context: context),
+                _QuickNavItem(icon: Icons.settings, label: 'SETTINGS', route: '/settings', context: context),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String route;
+  final BuildContext context;
+  const _QuickNavItem({required this.icon, required this.label, required this.route, required this.context});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context); // Close bottom sheet
+        Navigator.pushNamed(this.context, route);
+      },
+      child: SizedBox(
+        width: 60,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                border: Border.all(color: CyberColors.dimCyan.withAlpha(80)),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Icon(icon, color: CyberColors.neonCyan, size: 20),
+            ),
+            const SizedBox(height: 4),
+            Text(label, style: const TextStyle(fontSize: 8, color: CyberColors.textDim, fontFamily: 'monospace')),
+          ],
+        ),
       ),
     );
   }

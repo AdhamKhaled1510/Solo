@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/cyberpunk_theme.dart';
 import 'home_screen.dart';
-import '../timer/timer_screen.dart';
 import '../skills/skill_tree_screen.dart';
 import '../shop/shop_screen.dart';
 import '../inventory/inventory_screen.dart';
+import '../leaderboard/leaderboard_screen.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -20,7 +20,7 @@ class _HomeShellState extends State<HomeShell> {
     HomeScreen(),
     SkillTreeScreen(),
     ShopScreen(),
-    TimerScreen(),
+    LeaderboardScreen(),
     InventoryScreen(),
   ];
 
@@ -74,8 +74,8 @@ class _HomeShellState extends State<HomeShell> {
                 label: 'SHOP',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.timer_outlined, size: 22),
-                activeIcon: Icon(Icons.timer, size: 22, color: CyberColors.neonCyan),
+                icon: Icon(Icons.emoji_events_outlined, size: 22),
+                activeIcon: Icon(Icons.emoji_events, size: 22, color: CyberColors.neonCyan),
                 label: 'RANK',
               ),
               const BottomNavigationBarItem(
