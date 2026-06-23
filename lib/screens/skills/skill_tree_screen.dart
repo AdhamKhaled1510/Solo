@@ -140,9 +140,7 @@ class _BranchCard extends StatelessWidget {
             text: 'INITIALIZE CLASS',
             subtext: 'تفعيل القدرات',
             onPressed: () {
-              app.user.branch = branch;
-              app.user.addXp(100); // Give small bonus
-              app.init(); // Reload
+              app.setBranch(branch);
             },
             color: color,
           ),
