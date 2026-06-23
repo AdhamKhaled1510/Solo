@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'core/theme/app_theme.dart';
+import 'core/theme/cyberpunk_theme.dart';
 import 'firebase_options.dart';
 import 'providers/app_provider.dart';
 import 'providers/auth_provider.dart';
@@ -55,9 +55,9 @@ class MyStudyApp extends StatelessWidget {
           return MaterialApp(
             title: 'Solo',
             debugShowCheckedModeBanner: false,
-            theme: isDark ? AppTheme.dark : AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+            theme: CyberpunkTheme.dark,
+            darkTheme: CyberpunkTheme.dark,
+            themeMode: ThemeMode.dark,
             home: const SplashScreen(),
             routes: {
               '/home': (context) => const HomeShell(),

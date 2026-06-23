@@ -1,273 +1,287 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/quest_model.dart';
+import 'package:flutter/services.dart';
+import '../../core/theme/cyberpunk_theme.dart';
+import '../../core/widgets/cyberpunk_widgets.dart';
 import '../../providers/app_provider.dart';
-import '../../models/user_model.dart';
-import '../../widgets/xp_bar.dart';
+import '../../models/quest_model.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AppProvider>(
-      builder: (context, app, _) {
-        final user = app.user;
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('مرحبًا ${user.name.isNotEmpty ? user.name : 'يا بطل'} 👋'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () => Navigator.pushNamed(context, '/settings'),
-              ),
-            ],
-          ),
-          body: RefreshIndicator(
-            onRefresh: () async => app.checkDailyReset(),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _UserLevelCard(app: app),
-                  const SizedBox(height: 16),
-                  _QuickStats(app: app),
-                  const SizedBox(height: 16),
-                  _TodayOverview(app: app),
-                  const SizedBox(height: 16),
-                  _DailyQuestsPreview(app: app, context: context),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _UserLevelCard extends StatelessWidget {
-  final AppProvider app;
-  const _UserLevelCard({required this.app});
-  UserModel get user => app.user;
-
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  '${user.level}',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+    return AnnotatedRegion(
+      value: SystemUiOverlayStyle.light.copyWith(
+        systemNavigationBarColor: CyberColors.bg,
+        statusBarColor: Colors.transparent,
+      ),
+      child: Consumer<AppProvider>(
+        builder: (context, app, _) {
+          final user = app.user;
+          return Scaffold(
+            body: CustomPaint(
+              painter: GridBackground(),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+                  child: Column(
+                    children: [
+                      _Header(user: user),
+                      const SizedBox(height: 16),
+                      _TimerSection(onEnterDungeon: () => Navigator.pushNamed(context, '/timer')),
+                      const SizedBox(height: 16),
+                      _DailyQuestsGrid(app: app),
+                      const SizedBox(height: 12),
+                      _StoryQuestCard(app: app),
+                    ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'المستوى ${user.level}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  XpBar(
-                    current: user.xp,
-                    max: user.xpForNextLevel,
-                    height: 10,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${user.xp} / ${user.xpForNextLevel} XP',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-class _QuickStats extends StatelessWidget {
-  final AppProvider app;
-  const _QuickStats({required this.app});
+class _Header extends StatelessWidget {
+  final dynamic user;
+  const _Header({required this.user});
 
   @override
   Widget build(BuildContext context) {
-    final user = app.user;
-    return Row(
-      children: [
-        _StatCard(label: '🔥 ${user.streakDays}', subtitle: 'أيام', color: Colors.orange),
-        _StatCard(label: '🪙 ${user.coins}', subtitle: 'عملات', color: Colors.amber),
-        _StatCard(label: '🌳 ${user.totalTreesPlanted}', subtitle: 'أشجار', color: Colors.green),
-        _StatCard(label: '⏱ ${user.totalFocusMinutes}m', subtitle: 'تركيز', color: Colors.blue),
-      ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String subtitle;
-  final Color color;
-  const _StatCard({required this.label, required this.subtitle, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left: Operator hex badge + stamina
+          Column(
             children: [
-              Text(label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 2),
-              Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+              HexBadge(label: 'LVL', value: '${user.level}', color: CyberColors.neonCyan),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: 60,
+                child: SegmentedBar(progress: user.levelProgress, segments: 6),
+              ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TodayOverview extends StatelessWidget {
-  final AppProvider app;
-  const _TodayOverview({required this.app});
-
-  @override
-  Widget build(BuildContext context) {
-    final prayer = app.prayerToday;
-    final tasks = app.todayTasks;
-    final completed = tasks.where((t) => t.isCompleted).length;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ملخص اليوم', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Row(
+          const SizedBox(width: 12),
+          // Center: Title
+          Expanded(
+            child: Column(
               children: [
-                _OverviewItem(label: 'صلاة', value: '${prayer.completedPrayers}/5', color: Colors.green),
-                const SizedBox(width: 16),
-                _OverviewItem(label: 'مهام', value: '$completed/${tasks.length}', color: Colors.blue),
-                const SizedBox(width: 16),
-                _OverviewItem(label: 'قرآن', value: '${prayer.quranPages} ص', color: Colors.purple),
+                Text('S . O . L . O', style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.bold,
+                  color: CyberColors.neonCyan, fontFamily: 'monospace',
+                  letterSpacing: 3,
+                )),
+                Text('STUDY REALM', style: TextStyle(
+                  fontSize: 9, color: CyberColors.textDim, fontFamily: 'monospace',
+                  letterSpacing: 4,
+                )),
+                // Operator ID
+                Text(user.name.isNotEmpty ? 'OPERATOR_ID ${user.name.toUpperCase()}' : 'OPERATOR_ID NAKAMURA',
+                  style: TextStyle(fontSize: 8, color: CyberColors.textDim, fontFamily: 'monospace')),
               ],
             ),
-            if (prayer.completedPrayers < 5) ...[
-              const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/habits'),
-                icon: const Icon(Icons.mosque_outlined),
-                label: const Text('تسجيل الصلوات المتبقية'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OverviewItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  const _OverviewItem({required this.label, required this.value, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: color.withAlpha(25),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 18)),
           ),
-          const SizedBox(height: 4),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(width: 12),
+          // Right: Gold + Streak
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              GlassmorphicCapsule(icon: Icons.monetization_on, text: '${user.coins}', color: CyberColors.amberGold),
+              const SizedBox(height: 6),
+              GlassmorphicCapsule(icon: Icons.local_fire_department, text: '${user.streakDays} DAY', color: CyberColors.hotMagenta),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _DailyQuestsPreview extends StatelessWidget {
+class _TimerSection extends StatelessWidget {
+  final VoidCallback onEnterDungeon;
+
+  const _TimerSection({required this.onEnterDungeon});
+
+  @override
+  Widget build(BuildContext context) {
+    return BracketFrame(
+      color: CyberColors.neonCyan,
+      padding: 16,
+      child: Column(
+        children: [
+          Text('02 : 33 : 04', style: TextStyle(
+            fontSize: 42, fontWeight: FontWeight.w300,
+            color: CyberColors.neonCyan,
+            fontFamily: 'monospace',
+            letterSpacing: 6,
+          )),
+          const SizedBox(height: 12),
+          TechButton(
+            text: 'ENTER DUNGEON',
+            subtext: 'دخول المغارة',
+            onPressed: onEnterDungeon,
+            color: CyberColors.neonCyan,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyQuestsGrid extends StatelessWidget {
   final AppProvider app;
-  final BuildContext context;
-  const _DailyQuestsPreview({required this.app, required this.context});
+  const _DailyQuestsGrid({required this.app});
 
   @override
   Widget build(BuildContext context) {
     final quests = app.dailyQuests;
-    final completed = quests.where((q) => q.status.index >= 1).length;
+    final completed = quests.where((q) => q.status != QuestStatus.active).length;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('🎯 المهام اليومية', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                Text('$completed/${quests.length}', style: TextStyle(color: Colors.grey)),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: 'DAILY QUESTS / مهام اليوم', trailing: '$completed/${quests.length}'),
+        const SizedBox(height: 8),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.5,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: quests.length.clamp(0, 4),
+          itemBuilder: (context, index) {
+            if (index >= quests.length) return const SizedBox();
+            final q = quests[index];
+            return _QuestCard(quest: q);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _QuestCard extends StatelessWidget {
+  final QuestModel quest;
+  const _QuestCard({required this.quest});
+
+  @override
+  Widget build(BuildContext context) {
+    final isCompleted = quest.status != QuestStatus.active;
+    final color = isCompleted ? CyberColors.hotMagenta : CyberColors.neonCyan;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CyberColors.surface,
+        border: Border.all(
+          color: isCompleted ? CyberColors.hotMagenta.withAlpha(120) : CyberColors.dimCyan.withAlpha(80),
+          width: isCompleted ? 1.5 : 0.5,
+        ),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  quest.title,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontFamily: 'monospace',
+                    color: isCompleted ? CyberColors.hotMagenta : CyberColors.textPrimary,
+                    decoration: isCompleted ? TextDecoration.lineThrough : null,
+                  ),
+                  maxLines: 2,
+                ),
+              ),
+              if (isCompleted)
+                Container(
+                  width: 14, height: 14,
+                  decoration: BoxDecoration(
+                    color: CyberColors.hotMagenta,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Icon(Icons.check, size: 10, color: Colors.white),
+                ),
+            ],
+          ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              border: Border.all(color: color.withAlpha(100), width: 0.5),
+              borderRadius: BorderRadius.circular(2),
             ),
-            const SizedBox(height: 12),
-            ...quests.take(3).map((q) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
+            child: Text('+${quest.xpReward} XP', style: TextStyle(
+              fontSize: 9, color: color, fontFamily: 'monospace', fontWeight: FontWeight.bold,
+            )),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StoryQuestCard extends StatelessWidget {
+  final AppProvider app;
+  const _StoryQuestCard({required this.app});
+
+  @override
+  Widget build(BuildContext context) {
+    final stories = app.quests.where((q) => q.type == QuestType.story).toList();
+    final current = stories.isNotEmpty ? stories.first : null;
+    final progress = current != null ? current.progress : 0.0;
+
+    return BracketFrame(
+      color: CyberColors.neonCyan.withAlpha(150),
+      padding: 12,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    q.status == QuestStatus.completed ? Icons.check_circle : Icons.radio_button_unchecked,
-                    color: q.status == QuestStatus.completed ? Colors.green : Colors.grey,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(q.title, style: TextStyle(
-                      decoration: q.status == QuestStatus.completed ? TextDecoration.lineThrough : null,
-                      color: q.status == QuestStatus.completed ? Colors.grey : null,
-                    )),
-                  ),
+                  Text('STORY QUEST / المهمة الأسطورية',
+                    style: const TextStyle(fontSize: 11, color: CyberColors.neonCyan, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                  Text(current?.title ?? 'الفصل الثالث: الكيمياء العضوية',
+                    style: const TextStyle(fontSize: 9, color: CyberColors.textDim, fontFamily: 'monospace')),
                 ],
               ),
-            )),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/quests'),
-              child: const Text('عرض الكل'),
-            ),
-          ],
-        ),
+              Text('${(progress * 100).toInt()}% POWER LEVEL',
+                style: const TextStyle(fontSize: 9, color: CyberColors.neonCyan, fontFamily: 'monospace')),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Text('INIT', style: TextStyle(fontSize: 8, color: CyberColors.textDim, fontFamily: 'monospace')),
+              const SizedBox(width: 4),
+              Expanded(child: SegmentedBar(progress: progress, segments: 10)),
+              const SizedBox(width: 4),
+              Text('MAX', style: TextStyle(fontSize: 8, color: CyberColors.textDim, fontFamily: 'monospace')),
+            ],
+          ),
+        ],
       ),
     );
   }
