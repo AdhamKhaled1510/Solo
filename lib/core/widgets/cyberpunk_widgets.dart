@@ -64,14 +64,14 @@ class _BracketPainter extends CustomPainter {
     const bracket = 12.0;
     final h = size.height, w = size.width;
     // Top-left
-    canvas.drawLine(const Offset(0, bracket), const Offset(0, 0), paint);
+    canvas.drawLine(Offset(0, bracket), const Offset(0, 0), paint);
     canvas.drawLine(const Offset(0, 0), Offset(bracket, 0), paint);
     // Top-right
     canvas.drawLine(Offset(w - bracket, 0), Offset(w, 0), paint);
     canvas.drawLine(Offset(w, 0), Offset(w, bracket), paint);
     // Bottom-left
-    canvas.drawLine(const Offset(0, h - bracket), const Offset(0, h), paint);
-    canvas.drawLine(const Offset(0, h), Offset(bracket, h), paint);
+    canvas.drawLine(Offset(0, h - bracket), Offset(0, h), paint);
+    canvas.drawLine(Offset(0, h), Offset(bracket, h), paint);
     // Bottom-right
     canvas.drawLine(Offset(w - bracket, h), Offset(w, h), paint);
     canvas.drawLine(Offset(w, h), Offset(w, h - bracket), paint);
