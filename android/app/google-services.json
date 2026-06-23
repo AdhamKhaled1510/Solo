@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "625552838603",
+    "project_id": "solo-4f84b",
+    "storage_bucket": "solo-4f84b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:625552838603:android:b2b52f153209885fb8b04e",
+        "android_client_info": {
+          "package_name": "com.mystudy.mystudy_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "625552838603-kkfndqkp4g7b5v5ast7ksbkbcrfjf3ao.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBMO1ArFX-c_RgAVZIo1XKUDgfQS63WB0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "625552838603-kkfndqkp4g7b5v5ast7ksbkbcrfjf3ao.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "625552838603-r77mv0nus28shii3d6bieu2ib9s693o8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mystudy.mystudyApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
