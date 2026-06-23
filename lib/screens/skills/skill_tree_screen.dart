@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/theme/cyberpunk_theme.dart';
+import '../../core/widgets/cyberpunk_widgets.dart';
 import '../../providers/app_provider.dart';
 import '../../models/skill_model.dart';
 import '../../models/solo_rank.dart';
@@ -13,64 +15,14 @@ class SkillTreeScreen extends StatelessWidget {
       builder: (context, app, _) {
         final user = app.user;
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('🌿 شجرة المهارات'),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.withAlpha(25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text('⚡ ${user.skillPoints} نقطة', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ),
-            ],
+          body: CustomPaint(
+            painter: GridBackground(),
+            child: SafeArea(
+              child: user.branch == null
+                ? _BranchSelector(app: app)
+                : _SkillTreeViewer(app: app),
+            ),
           ),
-          body: user.branch == null
-            ? _BranchSelector(app: app)
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _RankInfo(rank: user.currentRank, level: user.level),
-                    const SizedBox(height: 16),
-                    if (app.availableSkills.isEmpty && app.unlockedSkills.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Text('لا توجد مهارات متاحة حاليًا', style: TextStyle(color: Colors.grey)),
-                        ),
-                      ),
-                    if (app.unlockedSkills.isNotEmpty) ...[
-                      Text('🔓 المهارات المفتوحة', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      ...app.unlockedSkills.map((s) => _SkillCard(skill: s, unlocked: true)),
-                      const SizedBox(height: 16),
-                    ],
-                    if (app.availableSkills.isNotEmpty) ...[
-                      Text('🔒 المهارات المتاحة', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      ...app.availableSkills.map((s) => _SkillCard(
-                        skill: s,
-                        unlocked: false,
-                        onUnlock: () {
-                          if (app.unlockSkill(s.id)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('تم فتح ${s.name}! 🎉')),
-                            );
-                          }
-                        },
-                      )),
-                    ],
-                  ],
-                ),
-              ),
         );
       },
     );
@@ -83,42 +35,57 @@ class _BranchSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Text('🧙', style: TextStyle(fontSize: 60)),
-          const SizedBox(height: 16),
-          Text('اختر شعبتك', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          const Text('⚡', style: TextStyle(fontSize: 60, color: CyberColors.neonCyan)),
+          const SizedBox(height: 12),
+          const Text(
+            'CHOOSE CLASS / اختر الشعبة',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: CyberColors.neonCyan,
+              fontFamily: 'monospace',
+              letterSpacing: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 8),
-          Text('المهارات هتختلف حسب شعبتك', style: TextStyle(color: Colors.grey)),
-          const SizedBox(height: 32),
-          _BranchCard(
-            emoji: '🧪',
-            name: 'علمي علوم',
-            title: 'The Mage',
-            description: 'مهارات لفك طلاسم الأحياء والجيولوجيا',
-            color: Colors.green,
-            onTap: () => app.setBranch(SubjectBranch.science),
+          const Text(
+            'ستحدد الشعبة المسار التكنولوجي لقدراتك الفكرية',
+            style: TextStyle(fontSize: 11, color: CyberColors.textDim, fontFamily: 'monospace'),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
           _BranchCard(
-            emoji: '⚙️',
-            name: 'علمي رياضة',
-            title: 'The Mechanic',
-            description: 'مهارات لسرعة حل المعادلات والهندسة',
-            color: Colors.blue,
-            onTap: () => app.setBranch(SubjectBranch.math),
+            title: 'THE MAGE / علمي علوم',
+            subtitle: 'تخصص الكيمياء والأحياء والتحليل الخلوي',
+            description: 'تركيز مكثف على فك شفرات العلوم الحيوية والطبية مع مكافآت معززة للـ XP.',
+            branch: SubjectBranch.science,
+            app: app,
+            color: CyberColors.neonCyan,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _BranchCard(
-            emoji: '📜',
-            name: 'أدبي',
-            title: 'The Explorer',
-            description: 'مهارات لحفظ التواريخ وفهم الفلسفة',
-            color: Colors.purple,
-            onTap: () => app.setBranch(SubjectBranch.literature),
+            title: 'MECHANIC / علمي رياضة',
+            subtitle: 'تخصص الهندسة والرياضيات المتقدمة والفيزياء',
+            description: 'حل المعادلات المعقدة وبناء النماذج الهندسية مع ترقيات قتالية للبوس فايت.',
+            branch: SubjectBranch.math,
+            app: app,
+            color: CyberColors.amberGold,
+          ),
+          const SizedBox(height: 16),
+          _BranchCard(
+            title: 'EXPLORER / أدبي',
+            subtitle: 'تخصص التاريخ والجغرافيا والعلوم الإنسانية',
+            description: 'استكشاف الثقافات وتحليل الفلسفة مع سرعة أكبر في تجميع العملات والمهام.',
+            branch: SubjectBranch.literature,
+            app: app,
+            color: CyberColors.hotMagenta,
           ),
         ],
       ),
@@ -127,145 +94,232 @@ class _BranchSelector extends StatelessWidget {
 }
 
 class _BranchCard extends StatelessWidget {
-  final String emoji;
-  final String name;
   final String title;
+  final String subtitle;
   final String description;
+  final SubjectBranch branch;
+  final AppProvider app;
   final Color color;
-  final VoidCallback onTap;
-  const _BranchCard({required this.emoji, required this.name, required this.title, required this.description, required this.color, required this.onTap});
+
+  const _BranchCard({
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.branch,
+    required this.app,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+    return BracketFrame(
+      color: color,
+      padding: 16,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(color: color.withAlpha(25), borderRadius: BorderRadius.circular(12)),
-                child: Center(child: Text(emoji, style: const TextStyle(fontSize: 32))),
-              ),
-              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-                    Text(description, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                    Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color, fontFamily: 'monospace')),
+                    Text(subtitle, style: const TextStyle(fontSize: 11, color: CyberColors.textDim)),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 16),
+              Icon(Icons.shield, color: color, size: 24),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(description, style: const TextStyle(fontSize: 10, color: CyberColors.textPrimary)),
+          const SizedBox(height: 12),
+          TechButton(
+            text: 'INITIALIZE CLASS',
+            subtext: 'تفعيل القدرات',
+            onPressed: () {
+              app.user.branch = branch;
+              app.user.addXp(100); // Give small bonus
+              app.init(); // Reload
+            },
+            color: color,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkillTreeViewer extends StatelessWidget {
+  final AppProvider app;
+  const _SkillTreeViewer({required this.app});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = app.user;
+    final unlocked = app.unlockedSkills;
+    final available = app.availableSkills;
+
+    return Column(
+      children: [
+        // Top tech header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.branch == SubjectBranch.science ? 'SYSTEM: MAGE' :
+                    user.branch == SubjectBranch.math ? 'SYSTEM: MECHANIC' : 'SYSTEM: EXPLORER',
+                    style: const TextStyle(color: CyberColors.neonCyan, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                  ),
+                  const Text('UPGRADE NODES / ترقية القدرات', style: TextStyle(color: CyberColors.textDim, fontSize: 9, fontFamily: 'monospace')),
+                ],
+              ),
+              Row(
+                children: [
+                  HexBadge(label: 'PTS', value: '${user.skillPoints}', color: CyberColors.amberGold),
+                ],
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _RankInfo extends StatelessWidget {
-  final SoloRank rank;
-  final int level;
-  const _RankInfo({required this.rank, required this.level});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: rank == SoloRank.s ? Colors.amber.withAlpha(50) : Colors.grey.withAlpha(25),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text('${rank.emoji} ${rank.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            const Spacer(),
-            Text('LVL $level', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SkillCard extends StatelessWidget {
-  final SkillModel skill;
-  final bool unlocked;
-  final VoidCallback? onUnlock;
-  const _SkillCard({required this.skill, required this.unlocked, this.onUnlock});
-
-  @override
-  Widget build(BuildContext context) {
-    final categoryColor = switch (skill.category) {
-      SkillCategory.focus => Colors.blue,
-      SkillCategory.memory => Colors.purple,
-      SkillCategory.subject => Colors.green,
-      SkillCategory.social => Colors.orange,
-      SkillCategory.defense => Colors.red,
-    };
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: categoryColor.withAlpha(25),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Icon(
-                  unlocked ? Icons.check_circle : Icons.lock_outline,
-                  color: unlocked ? Colors.green : categoryColor,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(skill.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text(skill.description, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
-                  if (skill.branch != null)
-                    Chip(
-                      label: Text(
-                        skill.branch == SubjectBranch.science ? 'علمي علوم' :
-                        skill.branch == SubjectBranch.math ? 'علمي رياضة' : 'أدبي',
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
+        const Divider(color: CyberColors.darkTeal, height: 1),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (unlocked.isNotEmpty) ...[
+                  const SectionHeader(title: 'UNLOCKED UPGRADES / ترقيات مفعلة'),
+                  const SizedBox(height: 10),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: unlocked.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, idx) => _SkillNodeCard(skill: unlocked[idx], isUnlocked: true),
+                  ),
+                  const SizedBox(height: 20),
                 ],
-              ),
+                if (available.isNotEmpty) ...[
+                  const SectionHeader(title: 'AVAILABLE PATHS / مسارات متاحة'),
+                  const SizedBox(height: 10),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: available.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, idx) {
+                      final s = available[idx];
+                      return GestureDetector(
+                        onTap: () {
+                          if (user.skillPoints >= s.skillPointsCost) {
+                            if (app.unlockSkill(s.id)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('تم فتح ${s.name}! 🎉'),
+                                  backgroundColor: CyberColors.neonCyan,
+                                ),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('نقاط القدرة غير كافية لفك هذا المسار!'),
+                                backgroundColor: CyberColors.hotMagenta,
+                              ),
+                            );
+                          }
+                        },
+                        child: _SkillNodeCard(skill: s, isUnlocked: false),
+                      );
+                    },
+                  ),
+                ],
+                if (unlocked.isEmpty && available.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Text('جميع الترقيات مفعلة بالكامل!', style: TextStyle(color: CyberColors.textDim, fontFamily: 'monospace')),
+                    ),
+                  ),
+                const SizedBox(height: 40),
+              ],
             ),
-            if (!unlocked)
-              FilledButton.tonal(
-                onPressed: onUnlock,
-                child: Text('⚡${skill.skillPointsCost}'),
-              )
-            else
-              const Icon(Icons.check_circle, color: Colors.green),
-          ],
+          ),
         ),
+      ],
+    );
+  }
+}
+
+class _SkillNodeCard extends StatelessWidget {
+  final SkillModel skill;
+  final bool isUnlocked;
+
+  const _SkillNodeCard({required this.skill, required this.isUnlocked});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isUnlocked ? CyberColors.neonCyan : CyberColors.textDim;
+    return BracketFrame(
+      color: isUnlocked ? CyberColors.neonCyan : CyberColors.dimCyan.withAlpha(50),
+      padding: 12,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isUnlocked ? CyberColors.neonCyan.withAlpha(30) : Colors.transparent,
+              border: Border.all(color: color, width: 1),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Icon(
+              isUnlocked ? Icons.lock_open : Icons.lock_outline,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  skill.name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isUnlocked ? CyberColors.textPrimary : CyberColors.textDim,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+                Text(
+                  skill.description,
+                  style: const TextStyle(fontSize: 10, color: CyberColors.textDim),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (!isUnlocked)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('${skill.skillPointsCost} PTS', style: const TextStyle(fontSize: 12, color: CyberColors.amberGold, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+                const Text('COST', style: TextStyle(fontSize: 8, color: CyberColors.textDim, fontFamily: 'monospace')),
+              ],
+            )
+          else
+            const Icon(Icons.verified, color: CyberColors.neonCyan, size: 20),
+        ],
       ),
     );
   }
