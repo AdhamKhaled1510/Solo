@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/cyberpunk_theme.dart';
-import '../../core/widgets/cyberpunk_widgets.dart';
+import '../../core/theme/clean_theme.dart';
+import '../../core/widgets/clean_widgets.dart';
 import '../../providers/app_provider.dart';
 import '../../models/inventory_item.dart';
 
@@ -30,69 +30,47 @@ class _InventoryScreenState extends State<InventoryScreen> {
     _titleController.clear();
     _contentController.clear();
     _selectedSubject = '';
-
     showDialog(
       context: context,
       builder: (ctx) => Theme(
-        data: CyberpunkTheme.dark,
+        data: CleanTheme.dark,
         child: AlertDialog(
-          backgroundColor: CyberColors.surface,
-          shape: const BeveledRectangleBorder(
-            side: BorderSide(color: CyberColors.neonCyan, width: 1.5),
-          ),
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
-            'ADD ASSET / إضافة ${_selectedType == ItemType.flashcard ? 'بطاقة' : _selectedType == ItemType.summary ? 'ملخص' : 'قانون'}',
-            style: const TextStyle(color: CyberColors.neonCyan, fontSize: 13, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+            'إضافة ${_selectedType == ItemType.flashcard ? 'بطاقة' : _selectedType == ItemType.summary ? 'ملخص' : 'قانون'}',
+            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'TITLE / العنوان',
-                    labelStyle: TextStyle(color: CyberColors.neonCyan, fontSize: 11, fontFamily: 'monospace'),
-                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: CyberColors.dimCyan)),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: CyberColors.neonCyan, width: 2)),
-                  ),
-                  style: const TextStyle(color: CyberColors.textPrimary, fontSize: 13),
-                  textDirection: TextDirection.rtl,
+                  controller: _titleController, decoration: const InputDecoration(labelText: 'العنوان'),
+                  textDirection: TextDirection.rtl, style: const TextStyle(color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _contentController,
                   decoration: InputDecoration(
-                    labelText: _selectedType == ItemType.flashcard ? 'Q&A / السؤال والإجابة' : 'CONTENT / المحتوى',
-                    labelStyle: const TextStyle(color: CyberColors.neonCyan, fontSize: 11, fontFamily: 'monospace'),
-                    enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: CyberColors.dimCyan)),
-                    focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: CyberColors.neonCyan, width: 2)),
+                    labelText: _selectedType == ItemType.flashcard ? 'السؤال / الإجابة' : 'المحتوى',
                   ),
-                  style: const TextStyle(color: CyberColors.textPrimary, fontSize: 13),
-                  maxLines: 3,
-                  textDirection: TextDirection.rtl,
+                  maxLines: 3, textDirection: TextDirection.rtl,
+                  style: const TextStyle(color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _selectedSubject.isEmpty ? null : _selectedSubject,
-                  decoration: const InputDecoration(
-                    labelText: 'SUBJECT / المادة',
-                    labelStyle: TextStyle(color: CyberColors.neonCyan, fontSize: 11, fontFamily: 'monospace'),
-                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: CyberColors.dimCyan)),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: CyberColors.neonCyan, width: 2)),
-                  ),
-                  dropdownColor: CyberColors.surface,
-                  items: _subjects.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: CyberColors.textPrimary, fontSize: 12)))).toList(),
+                  decoration: const InputDecoration(labelText: 'المادة'),
+                  dropdownColor: AppColors.surface,
+                  items: _subjects.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: AppColors.textPrimary)))).toList(),
                   onChanged: (v) => setState(() => _selectedSubject = v ?? ''),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('CANCEL', style: TextStyle(color: CyberColors.textDim, fontSize: 11, fontFamily: 'monospace')),
-            ),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('إلغاء', style: TextStyle(color: AppColors.textSecondary))),
             ElevatedButton(
               onPressed: () {
                 if (_titleController.text.trim().isEmpty) return;
@@ -106,8 +84,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Navigator.of(ctx).pop();
                 setState(() {});
               },
-              style: ElevatedButton.styleFrom(backgroundColor: CyberColors.neonCyan),
-              child: const Text('SAVE / حفظ', style: TextStyle(color: CyberColors.bg, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('حفظ', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -121,98 +99,70 @@ class _InventoryScreenState extends State<InventoryScreen> {
       builder: (context, app, _) {
         final items = app.inventory.where((i) => i.type == _selectedType).toList();
         return Scaffold(
-          body: CustomPaint(
-            painter: GridBackground(),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  // Header
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'BAG / الحقيبة',
-                              style: TextStyle(color: CyberColors.neonCyan, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
-                            ),
-                            Text('EARNED ASSETS / العتاد والبطاقات التعليمية', style: TextStyle(color: CyberColors.textDim, fontSize: 9, fontFamily: 'monospace')),
-                          ],
-                        ),
-                        Icon(Icons.backpack_outlined, color: CyberColors.neonCyan, size: 24),
-                      ],
-                    ),
-                  ),
-                  const Divider(color: CyberColors.darkTeal, height: 1),
-                  // Inventory Category Tabs
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _CategoryTabButton(
-                          type: ItemType.flashcard,
-                          label: 'CARDS',
-                          icon: Icons.style_outlined,
-                          isSelected: _selectedType == ItemType.flashcard,
-                          onTap: () => setState(() => _selectedType = ItemType.flashcard),
-                        ),
-                        _CategoryTabButton(
-                          type: ItemType.summary,
-                          label: 'SUMMARIES',
-                          icon: Icons.description_outlined,
-                          isSelected: _selectedType == ItemType.summary,
-                          onTap: () => setState(() => _selectedType = ItemType.summary),
-                        ),
-                        _CategoryTabButton(
-                          type: ItemType.formula,
-                          label: 'LAWS',
-                          icon: Icons.functions_outlined,
-                          isSelected: _selectedType == ItemType.formula,
-                          onTap: () => setState(() => _selectedType = ItemType.formula),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Inventory Items List
-                  Expanded(
-                    child: items.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'الحقيبة فارغة. أضف بعض البطاقات أو الملخصات!',
-                              style: TextStyle(color: CyberColors.textDim, fontSize: 12, fontFamily: 'monospace'),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 1.1,
-                            ),
-                            itemCount: items.length,
-                            itemBuilder: (context, idx) {
-                              final item = items[idx];
-                              return _InventoryItemCard(item: item, app: app, onReload: () => setState(() {}));
-                            },
-                          ),
-                  ),
-                ],
+          appBar: AppBar(title: const Text('الحقيبة')),
+          body: Column(
+            children: [
+              // Category filter chips
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    _FilterChip(label: '📇 بطاقات', selected: _selectedType == ItemType.flashcard, onTap: () => setState(() => _selectedType = ItemType.flashcard)),
+                    const SizedBox(width: 8),
+                    _FilterChip(label: '📝 ملخصات', selected: _selectedType == ItemType.summary, onTap: () => setState(() => _selectedType = ItemType.summary)),
+                    const SizedBox(width: 8),
+                    _FilterChip(label: '📐 قوانين', selected: _selectedType == ItemType.formula, onTap: () => setState(() => _selectedType = ItemType.formula)),
+                  ],
+                ),
               ),
-            ),
+              Expanded(
+                child: items.isEmpty
+                  ? const Center(child: Text('الحقيبة فارغة. أضف بعض البطاقات!', style: TextStyle(color: AppColors.textSecondary)))
+                  : GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.1,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (_, i) {
+                        final item = items[i];
+                        return GlassCard(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: AppColors.cardLight, borderRadius: BorderRadius.circular(6)),
+                                    child: Text(item.subject ?? 'عام', style: const TextStyle(fontSize: 9, color: AppColors.primary)),
+                                  ),
+                                  const Spacer(),
+                                  GestureDetector(
+                                    onTap: () {
+                                      app.removeFromInventory(item.id);
+                                      setState(() {});
+                                    },
+                                    child: const Icon(Icons.delete_outline, color: AppColors.error, size: 16),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              const Spacer(),
+                              Text(item.content, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+              ),
+            ],
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _showAddDialog,
-            backgroundColor: CyberColors.neonCyan,
-            shape: const BeveledRectangleBorder(
-              side: BorderSide(color: CyberColors.neonCyan, width: 1),
-            ),
-            child: const Icon(Icons.add, color: CyberColors.bg),
+            child: const Icon(Icons.add),
           ),
         );
       },
@@ -220,98 +170,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 }
 
-class _CategoryTabButton extends StatelessWidget {
-  final ItemType type;
+class _FilterChip extends StatelessWidget {
   final String label;
-  final IconData icon;
-  final bool isSelected;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _CategoryTabButton({
-    required this.type,
-    required this.label,
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _FilterChip({required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? CyberColors.neonCyan : CyberColors.textDim;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? CyberColors.neonCyan.withAlpha(20) : Colors.transparent,
-          border: Border.all(color: color.withAlpha(100), width: isSelected ? 1.5 : 0.5),
-          borderRadius: BorderRadius.circular(4),
+          color: selected ? AppColors.primary.withAlpha(20) : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(8),
+          border: selected ? Border.all(color: AppColors.primary.withAlpha(60)) : null,
         ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 14),
-            const SizedBox(width: 4),
-            Text(label, style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InventoryItemCard extends StatelessWidget {
-  final InventoryItem item;
-  final AppProvider app;
-  final VoidCallback onReload;
-
-  const _InventoryItemCard({required this.item, required this.app, required this.onReload});
-
-  @override
-  Widget build(BuildContext context) {
-    return BracketFrame(
-      color: CyberColors.neonCyan.withAlpha(120),
-      padding: 10,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  border: Border.all(color: CyberColors.dimCyan, width: 0.5),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                child: Text(
-                  item.subject ?? 'GENERAL',
-                  style: const TextStyle(fontSize: 8, color: CyberColors.neonCyan, fontFamily: 'monospace'),
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () {
-                  app.removeFromInventory(item.id);
-                  onReload();
-                },
-                child: const Icon(Icons.delete_outline, size: 14, color: CyberColors.hotMagenta),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            item.title,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: CyberColors.textPrimary, fontFamily: 'monospace'),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const Spacer(),
-          Text(
-            item.content,
-            style: const TextStyle(fontSize: 9, color: CyberColors.textDim),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+        child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? AppColors.primary : AppColors.textSecondary)),
       ),
     );
   }

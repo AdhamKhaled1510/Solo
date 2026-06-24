@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/cyberpunk_theme.dart';
-import '../../core/widgets/cyberpunk_widgets.dart';
+import '../../core/theme/clean_theme.dart';
+import '../../core/widgets/clean_widgets.dart';
 import '../../models/tree_species.dart';
 import '../../providers/app_provider.dart';
 
@@ -35,168 +35,118 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
         final user = app.user;
 
         return Scaffold(
-          body: CustomPaint(
-            painter: GridBackground(),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'MARKETPLACE / المتجر',
-                              style: TextStyle(color: CyberColors.neonCyan, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
-                            ),
-                            Text('ACQUIRE ASSETS / شراء العتاد والأشجار', style: TextStyle(color: CyberColors.textDim, fontSize: 9, fontFamily: 'monospace')),
-                          ],
-                        ),
-                        HexBadge(label: 'COINS', value: '${user.coins}', color: CyberColors.amberGold),
-                      ],
-                    ),
-                  ),
-                  // Tabs
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: CyberColors.surface,
-                      border: Border.all(color: CyberColors.dimCyan.withAlpha(50), width: 0.5),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicatorColor: CyberColors.neonCyan,
-                      labelColor: CyberColors.neonCyan,
-                      unselectedLabelColor: CyberColors.textDim,
-                      labelStyle: const TextStyle(fontSize: 10, fontFamily: 'monospace', fontWeight: FontWeight.bold),
-                      tabs: const [
-                        Tab(text: 'TREES / الأشجار'),
-                        Tab(text: 'BOOSTERS / معززات'),
-                        Tab(text: 'COSMETICS / مظهر'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Tab content
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        // Tab 1: Trees
-                        trees.isEmpty
-                            ? const Center(
-                                child: Text('جميع الأشجار مملوكة بالكامل!', style: TextStyle(color: CyberColors.textDim, fontFamily: 'monospace')),
-                              )
-                            : GridView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 0.9,
-                                ),
-                                itemCount: trees.length,
-                                itemBuilder: (context, idx) {
-                                  final tree = trees[idx];
-                                  final canAfford = user.coins >= tree.cost;
-                                  final hasLevel = user.level >= tree.requiredLevel;
-
-                                  // Choose color based on rarity
-                                  Color rarityColor = CyberColors.neonCyan;
-                                  if (tree.rarity == TreeRarity.uncommon) {
-                                    rarityColor = Colors.purple;
-                                  } else if (tree.rarity == TreeRarity.rare || tree.rarity == TreeRarity.legendary) {
-                                    rarityColor = CyberColors.hotMagenta;
-                                  }
-
-                                  return _ShopItemCard(
-                                    title: tree.name,
-                                    subtitle: tree.rarity.label,
-                                    iconText: tree.emoji,
-                                    cost: tree.cost,
-                                    requiredLevel: tree.requiredLevel,
-                                    canAfford: canAfford,
-                                    hasLevel: hasLevel,
-                                    color: rarityColor,
-                                    onBuy: () {
-                                      if (app.buyTree(tree.id)) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('تم شراء ${tree.name}! 🎉'),
-                                            backgroundColor: CyberColors.neonCyan,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                        // Tab 2: Boosters
-                        GridView.count(
-                          crossAxisCount: 2,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 0.9,
-                          children: [
-                            _ShopItemCard(
-                              title: 'XP BOOSTER / مضاعف الخبرة',
-                              subtitle: '+100% XP لمدة ساعة',
-                              iconText: '⚡',
-                              cost: 300,
-                              requiredLevel: 1,
-                              canAfford: user.coins >= 300,
-                              hasLevel: true,
-                              color: CyberColors.neonCyan,
-                              onBuy: () {
-                                if (user.coins >= 300) {
-                                  app.activateBooster(60, 300);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('تم تفعيل مضاعف الخبرة بنجاح! ⚡'),
-                                      backgroundColor: CyberColors.neonCyan,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                            _ShopItemCard(
-                              title: 'STREAK SHIELD / درع الحماية',
-                              subtitle: 'حماية السلسلة من الانقطاع',
-                              iconText: '🛡️',
-                              cost: 500,
-                              requiredLevel: 5,
-                              canAfford: user.coins >= 500,
-                              hasLevel: user.level >= 5,
-                              color: CyberColors.amberGold,
-                              onBuy: () {
-                                user.coins -= 500;
-                                user.shields += 1;
-                                app.init(); // Reload
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('تم شراء درع الحماية بنجاح! 🛡️'),
-                                    backgroundColor: CyberColors.amberGold,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        // Tab 3: Cosmetics
-                        const Center(
-                          child: Text('سيتم تفعيل العتاد الحربي ومستحضرات الهولوغرام قريباً!', style: TextStyle(color: CyberColors.textDim, fontFamily: 'monospace')),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          appBar: AppBar(
+            title: const Text('المتجر'),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: BadgeWidget(text: '🪙 ${user.coins}', color: AppColors.coinGold),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(40),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: AppColors.primary,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: AppColors.textDim,
+                  labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  tabs: const [
+                    Tab(text: 'الأشجار'),
+                    Tab(text: 'المعززات'),
+                    Tab(text: 'المظهر'),
+                  ],
+                ),
               ),
             ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // Trees tab
+              trees.isEmpty
+                ? const Center(child: Text('جميع الأشجار مملوكة!', style: TextStyle(color: AppColors.textSecondary)))
+                : GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.85,
+                    ),
+                    itemCount: trees.length,
+                    itemBuilder: (_, i) {
+                      final tree = trees[i];
+                      final canAfford = user.coins >= tree.cost;
+                      final hasLevel = user.level >= tree.requiredLevel;
+                      Color rarityColor = tree.rarity == TreeRarity.rare || tree.rarity == TreeRarity.legendary ? AppColors.secondary : AppColors.primary;
+                      return GlassCard(
+                        borderColor: rarityColor.withAlpha(40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(tree.emoji, style: const TextStyle(fontSize: 36)),
+                            const SizedBox(height: 4),
+                            Text(tree.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                            Text(tree.rarity.label, style: const TextStyle(fontSize: 10, color: AppColors.textDim)),
+                            const SizedBox(height: 6),
+                            if (!hasLevel)
+                              BadgeWidget(text: 'المستوى ${tree.requiredLevel}', color: AppColors.error)
+                            else if (!canAfford)
+                              BadgeWidget(text: '🪙 ${tree.cost}', color: AppColors.error)
+                            else
+                              GestureDetector(
+                                onTap: () {
+                                  if (app.buyTree(tree.id)) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم شراء ${tree.name}! 🎉'), backgroundColor: AppColors.success));
+                                  }
+                                },
+                                child: BadgeWidget(text: '🪙 ${tree.cost}', color: AppColors.coinGold),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+              // Boosters tab
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _BoosterCard(
+                      title: 'مضاعف الخبرة',
+                      subtitle: '+100% XP لمدة ساعة',
+                      icon: '⚡',
+                      cost: 300,
+                      canBuy: user.coins >= 300,
+                      onBuy: () {
+                        if (user.coins >= 300) {
+                          app.activateBooster(60, 300);
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تفعيل مضاعف الخبرة! ⚡'), backgroundColor: AppColors.success));
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _BoosterCard(
+                      title: 'درع الحماية',
+                      subtitle: 'يحمي الـ Streak من الانقطاع',
+                      icon: '🛡️',
+                      cost: 500,
+                      canBuy: user.coins >= 500,
+                      onBuy: () {
+                        if (user.coins >= 500) {
+                          user.coins -= 500;
+                          user.shields += 1;
+                          app.init();
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم شراء درع الحماية! 🛡️'), backgroundColor: AppColors.success));
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Cosmetics tab
+              const Center(child: Text('قريبًا...', style: TextStyle(color: AppColors.textSecondary))),
+            ],
           ),
         );
       },
@@ -204,86 +154,40 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   }
 }
 
-class _ShopItemCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String iconText;
+class _BoosterCard extends StatelessWidget {
+  final String title, subtitle, icon;
   final int cost;
-  final int requiredLevel;
-  final bool canAfford;
-  final bool hasLevel;
-  final Color color;
+  final bool canBuy;
   final VoidCallback onBuy;
 
-  const _ShopItemCard({
-    required this.title,
-    required this.subtitle,
-    required this.iconText,
-    required this.cost,
-    required this.requiredLevel,
-    required this.canAfford,
-    required this.hasLevel,
-    required this.color,
-    required this.onBuy,
+  const _BoosterCard({
+    required this.title, required this.subtitle, required this.icon,
+    required this.cost, required this.canBuy, required this.onBuy,
   });
 
   @override
   Widget build(BuildContext context) {
-    final border = hasLevel ? color : CyberColors.textDim;
-    return BracketFrame(
-      color: border.withAlpha(120),
-      padding: 10,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return GlassCard(
+      child: Row(
         children: [
-          Text(iconText, style: const TextStyle(fontSize: 28)),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'monospace', color: CyberColors.textPrimary),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(subtitle, style: const TextStyle(fontSize: 8, color: CyberColors.textDim), textAlign: TextAlign.center),
-          const Spacer(),
-          if (!hasLevel)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                border: Border.all(color: CyberColors.hotMagenta.withAlpha(100)),
-                borderRadius: BorderRadius.circular(2),
-              ),
-              child: Text('LVL $requiredLevel', style: const TextStyle(fontSize: 9, color: CyberColors.hotMagenta, fontFamily: 'monospace')),
-            )
-          else
-            GestureDetector(
-              onTap: canAfford ? onBuy : null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: canAfford ? CyberColors.amberGold.withAlpha(20) : Colors.transparent,
-                  border: Border.all(color: canAfford ? CyberColors.amberGold : CyberColors.textDim.withAlpha(80)),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.monetization_on, size: 11, color: canAfford ? CyberColors.amberGold : CyberColors.textDim),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$cost',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: canAfford ? CyberColors.amberGold : CyberColors.textDim,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          Text(icon, style: const TextStyle(fontSize: 36)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              ],
             ),
+          ),
+          GestureDetector(
+            onTap: canBuy ? onBuy : null,
+            child: BadgeWidget(
+              text: '🪙 $cost',
+              color: canBuy ? AppColors.coinGold : AppColors.textDim,
+            ),
+          ),
         ],
       ),
     );
